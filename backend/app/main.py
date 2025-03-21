@@ -2,21 +2,29 @@
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import List, Any
+from uuid import UUID
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .service.order import db
+from .db.base import InMemoryDB, DatabaseError
+from .services.user import UserService
+from .services.order import OrderService
+from .schemas.user import UserCreate, UserUpdate, UserResponse
+from .schemas.order import OrderCreate, OrderUpdate, OrderResponse
 
+# Create database instance
+db = InMemoryDB()
+
+# Create services
+user_service = UserService(db)
+order_service = OrderService(db)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize and clean up the database."""
-
-    # Load sample data
-
     # Initialize database tables
     db.clear_table("users")
     db.clear_table("orders")
@@ -24,7 +32,6 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     # Clean up database
     db.clear_table("users")
     db.clear_table("orders")
-
 
 app = FastAPI(
     title="In-Memory Database Service",
@@ -42,106 +49,73 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Exception handlers
-@app.exception_handler(KeyError)
-async def key_error_handler(_request: Request, exc: KeyError) -> JSONResponse:
-    """Handle KeyError exceptions."""
-    return JSONResponse(
-        status_code=404,
-        content={"detail": str(exc)},
-    )
-
-
-@app.exception_handler(ValueError)
-async def value_error_handler(_request: Request, exc: ValueError) -> JSONResponse:
-    """Handle ValueError exceptions."""
+@app.exception_handler(DatabaseError)
+async def database_error_handler(_request: Request, exc: DatabaseError) -> JSONResponse:
+    """Handle database exceptions."""
     return JSONResponse(
         status_code=400,
         content={"detail": str(exc)},
     )
 
+# User endpoints
+@app.post("/api/v1/users", response_model=UserResponse)
+async def create_user(user: UserCreate) -> UserResponse:
+    """Create a new user."""
+    return await user_service.create_user(user)
 
-# API endpoints
-@app.post("/api/v1/tables/{table}/records", response_model=dict[str, Any])
-async def add_record(table: str, data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Add a new record to the specified table.
+@app.get("/api/v1/users/{user_id}", response_model=UserResponse)
+async def get_user(user_id: UUID) -> UserResponse:
+    """Get a user by ID."""
+    return await user_service.get_user(user_id)
 
-    Args:
-        table: Name of the table ('users' or 'orders')
-        data: Record data to add
+@app.put("/api/v1/users/{user_id}", response_model=UserResponse)
+async def update_user(user_id: UUID, user: UserUpdate) -> UserResponse:
+    """Update a user."""
+    return await user_service.update_user(user_id, user)
 
-    Returns:
-        The created record
-    """
-    try:
-        record_id = data.get("id")
-        if not record_id:
-            raise ValueError("Record ID is required")
-        return db.add_record(table, record_id, data)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+@app.delete("/api/v1/users/{user_id}")
+async def delete_user(user_id: UUID) -> bool:
+    """Delete a user."""
+    return await user_service.delete_user(user_id)
 
+@app.get("/api/v1/users", response_model=List[UserResponse])
+async def list_users() -> List[UserResponse]:
+    """List all users."""
+    return await user_service.list_users()
 
-@app.get("/api/v1/tables/{table}/records/{record_id}", response_model=dict[str, Any])
-async def get_record(table: str, record_id: str) -> dict[str, Any]:
-    """
-    Get a record from the specified table by ID.
+# Order endpoints
+@app.post("/api/v1/orders", response_model=OrderResponse)
+async def create_order(order: OrderCreate) -> OrderResponse:
+    """Create a new order."""
+    return await order_service.create_order(order)
 
-    Args:
-        table: Name of the table ('users' or 'orders')
-        record_id: ID of the record to retrieve
+@app.get("/api/v1/orders/{order_id}", response_model=OrderResponse)
+async def get_order(order_id: UUID) -> OrderResponse:
+    """Get an order by ID."""
+    return await order_service.get_order(order_id)
 
-    Returns:
-        The requested record if found
-    """
-    record = db.get_record(table, record_id)
-    if not record:
-        raise HTTPException(
-            status_code=404, detail=f"Record {record_id} not found in {table}"
-        )
-    return record
+@app.put("/api/v1/orders/{order_id}", response_model=OrderResponse)
+async def update_order(order_id: UUID, order: OrderUpdate) -> OrderResponse:
+    """Update an order."""
+    return await order_service.update_order(order_id, order)
 
+@app.delete("/api/v1/orders/{order_id}")
+async def delete_order(order_id: UUID) -> bool:
+    """Delete an order."""
+    return await order_service.delete_order(order_id)
 
-@app.put("/api/v1/tables/{table}/records/{record_id}", response_model=dict[str, Any])
-async def update_record(
-    table: str, record_id: str, data: dict[str, Any]
-) -> dict[str, Any]:
-    """
-    Update a record in the specified table.
+@app.get("/api/v1/orders", response_model=List[OrderResponse])
+async def list_orders() -> List[OrderResponse]:
+    """List all orders."""
+    return await order_service.list_orders()
 
-    Args:
-        table: Name of the table ('users' or 'orders')
-        record_id: ID of the record to update
-        data: Updated record data
+@app.get("/api/v1/users/{user_id}/orders", response_model=List[OrderResponse])
+async def get_user_orders(user_id: UUID) -> List[OrderResponse]:
+    """Get all orders for a specific user."""
+    return await order_service.get_user_orders(user_id)
 
-    Returns:
-        The updated record
-    """
-    try:
-        return db.update_record(table, record_id, data)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@app.delete("/api/v1/tables/{table}/records/{record_id}", response_model=dict[str, Any])
-async def delete_record(table: str, record_id: str) -> bool:
-    """
-    Delete a record from the specified table.
-
-    Args:
-        table: Name of the table ('users' or 'orders')
-        record_id: ID of the record to delete
-
-    Returns:
-        True if the record was deleted, False otherwise
-    """
-    try:
-        return db.delete_record(table, record_id)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
+# TDOO: 
 
 @app.get("/api/v1/tables/join", response_model=list[dict[str, Any]])
 async def join_tables(
@@ -162,7 +136,6 @@ async def join_tables(
         return db.join_tables(table1, table2, key)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @app.get("/api/v1/tables/{table}/dump", response_model=list[dict[str, Any]])
 async def dump_table(table: str) -> list[dict[str, Any]]:

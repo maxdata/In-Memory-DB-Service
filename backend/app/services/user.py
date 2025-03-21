@@ -2,17 +2,45 @@
 CRUD operations for the in-memory database service.
 """
 
-from typing import Any, TypeVar
+from typing import Any, TypeVar, List
 from uuid import UUID
 
 from backend.app.db import db
-from backend.app.model.user import Order, User, UserCreate
+from backend.app.model.user import Order, User, UserCreate, UserUpdate, UserResponse
+from backend.app.db.base import InMemoryDB
 
 # Define a generic type for models
 ModelT = TypeVar("ModelT", User, Order)
 
 # In-memory storage using dictionaries
 tables: dict[str, dict[str, dict[str, Any]]] = {"users": {}, "orders": {}}
+
+class UserService:
+    def __init__(self, db: InMemoryDB):
+        self.db = db
+        self.table = "users"
+
+    async def create_user(self, user: UserCreate) -> UserResponse:
+        user_data = user.model_dump()
+        await self.db.create(self.table, str(user.id), user_data)
+        return UserResponse(**user_data)
+
+    async def get_user(self, user_id: UUID) -> UserResponse:
+        user_data = await self.db.read(self.table, str(user_id))
+        return UserResponse(**user_data)
+
+    async def update_user(self, user_id: UUID, user: UserUpdate) -> UserResponse:
+        update_data = {k: v for k, v in user.model_dump().items() if v is not None}
+        user_data = await self.db.update(self.table, str(user_id), update_data)
+        return UserResponse(**user_data)
+
+    async def delete_user(self, user_id: UUID) -> bool:
+        return await self.db.delete(self.table, str(user_id))
+
+    async def list_users(self) -> List[UserResponse]:
+        users = await self.db.list(self.table)
+        return [UserResponse(**user) for user in users]
+
 
 def create_user(*, data: dict[str, Any] | UserCreate) -> User:
     """Create a new user in the in-memory database."""
