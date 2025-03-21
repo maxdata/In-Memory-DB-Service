@@ -101,6 +101,18 @@ class MemoryDB:
             del self.users[user_id]
             return True
         return False
+    
+    def delete_user(self, user_id: UUID4) -> bool:
+        """Delete a user and their associated orders."""
+        # Only delete user if they have no orders
+        if user_id in self.users:
+            # TODO: change to first get all the orders and then delete them
+            # TODO: first delete the orders and then the user
+
+            del self.users[user_id]
+            self.orders = {k: v for k, v in self.orders.items() if v.user_id != user_id}
+            return True
+        return False
 
     def delete_order(self, order_id: UUID) -> bool:
         """Delete an order by ID."""
@@ -108,6 +120,7 @@ class MemoryDB:
             del self.orders[order_id]
             return True
         return False
+    
 
     def join_user_orders(self) -> list[UserOrder]:
         """Join users and orders data."""
