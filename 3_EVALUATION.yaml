@@ -1,0 +1,117 @@
+evaluation_criteria:
+  code_quality:
+    description: "Evaluate code quality based on technical design and requirements"
+    aspects:
+      - architecture_alignment:
+          weight: 0.3
+          check_points:
+            - "Verify FastAPI implementation matches high-level architecture diagram"
+            - "Confirm presence of all components: HTTP Server, In-Memory DB, Pydantic Models"
+            - "Check implementation of concurrent request handling"
+            - "Validate error handling mechanisms"
+      
+      - data_models:
+          weight: 0.2
+          check_points:
+            - "Verify Pydantic models implementation for data validation"
+            - "Check support for required and optional fields"
+            - "Validate type hints usage"
+            - "Confirm nested data structure support"
+      
+      - api_endpoints:
+          weight: 0.25
+          check_points:
+            - "Verify all required CRUD endpoints implementation"
+            - "Check join operation functionality"
+            - "Validate response formats and status codes"
+            - "Confirm API versioning implementation"
+      
+      - testing_coverage:
+          weight: 0.25
+          check_points:
+            - "Verify minimum 80% code coverage requirement"
+            - "Check presence of unit tests for all endpoints"
+            - "Validate integration tests for join operations"
+            - "Confirm edge case testing"
+
+  performance_requirements:
+    description: "Evaluate system performance against requirements"
+    metrics:
+      - response_time:
+          target: "< 100ms for single record operations"
+          measurement: "Average response time for CRUD operations"
+      
+      - join_operation:
+          target: "< 500ms for join operations"
+          measurement: "Average response time for table joins"
+      
+      - concurrency:
+          target: "Handle multiple concurrent requests"
+          measurement: "Response time under load"
+
+  security_assessment:
+    description: "Evaluate security measures implementation"
+    requirements:
+      - input_validation:
+          priority: "High"
+          check_points:
+            - "Verify Pydantic validation implementation"
+            - "Check input sanitization"
+            - "Validate request size limits"
+      
+      - error_handling:
+          priority: "Medium"
+          check_points:
+            - "Check error message sanitization"
+            - "Verify proper status code usage"
+            - "Validate error response format"
+
+improvement_suggestions:
+  code_structure:
+    - "Implement more granular table-level locking for better concurrency"
+    - "Add database indexing for optimized join operations"
+    - "Implement query caching mechanism"
+    - "Add request/response compression"
+
+  reliability:
+    - "Implement data persistence mechanism for backup"
+    - "Add automatic data recovery system"
+    - "Implement circuit breaker pattern for resource-intensive operations"
+    - "Add request timeout handling"
+
+  monitoring:
+    - "Implement detailed performance metrics collection"
+    - "Add distributed tracing support"
+    - "Implement advanced logging with correlation IDs"
+    - "Add real-time monitoring dashboard"
+
+  security:
+    - "Implement rate limiting per endpoint"
+    - "Add authentication/authorization layer"
+    - "Implement request signing for sensitive operations"
+    - "Add API key management"
+
+  scalability:
+    - "Implement horizontal scaling support"
+    - "Add load balancing configuration"
+    - "Implement data sharding capability"
+    - "Add connection pooling"
+
+evaluation_process:
+  steps:
+    1: "Review codebase against technical design document"
+    2: "Run performance benchmarks"
+    3: "Execute security assessment"
+    4: "Generate metrics report"
+    5: "Compare against requirements"
+    6: "Produce improvement recommendations"
+
+reporting:
+  format: "Detailed analysis with metrics and recommendations"
+  sections:
+    - "Code Quality Score"
+    - "Performance Metrics"
+    - "Security Assessment"
+    - "Compliance with Requirements"
+    - "Improvement Recommendations"
+    - "Action Items Priority" 
