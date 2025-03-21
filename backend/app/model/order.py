@@ -49,6 +49,8 @@ class Order(OrderBase):
         default_factory=uuid4, description="Unique identifier for the order"
     )
     user_id: UUID4 = Field(..., description="ID of the user who placed the order")
+    # make index for user_id as foreign key
+    
     created_at: datetime = Field(
         default_factory=datetime.utcnow, description="When the order was created"
     )
