@@ -53,33 +53,62 @@ class InMemoryDB:
 
 ### 2.2 API Implementation
 
-#### 2.2.1 FastAPI Router Structure
+#### 2.2.1 Design Rationale
+The API implementation follows REST best practices by using resource-specific endpoints instead of generic table operations. Here's why:
+
+1. **Security**:
+   - Resource-specific endpoints prevent arbitrary table access
+   - Enables fine-grained access control per resource
+   - Eliminates SQL injection-like vulnerabilities from dynamic table names
+   - Allows validation specific to each resource type
+
+2. **RESTful Design**:
+   - Resources are nouns (users, orders) rather than operations (add_record, join)
+   - Relationships expressed through nested routes (e.g., /users/{id}/orders)
+   - HTTP methods indicate the operation (GET, POST, etc.)
+   - Clear hierarchy and resource ownership
+
+3. **Type Safety**:
+   - Each endpoint has specific Pydantic models for validation
+   - Compile-time type checking for request/response models
+   - Better IDE support and code completion
+   - Reduced runtime errors from invalid data
+
+4. **Maintainability**:
+   - Clear separation of concerns per resource
+   - Easier to document and understand
+   - Simpler testing with specific test cases
+   - Better version control and API evolution
+
+#### 2.2.2 FastAPI Router Structure
 ```python
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any
+from fastapi import APIRouter, HTTPException, Depends
+from typing import List
+from uuid import UUID
 
 router = APIRouter(prefix="/api/v1")
 
-@router.post("/data/{table}")
-async def create_record(
-    table: str,
-    data: Dict[str, Any],
+@router.get("/users/{user_id}/orders")
+async def get_user_orders(
+    user_id: UUID,
     db: InMemoryDB = Depends(get_db)
-) -> Dict[str, Any]:
-    try:
-        record_id = str(uuid4())
-        return await db.create(table, record_id, data)
-    except DuplicateRecordError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+) -> List[OrderResponse]:
+    """Get orders for a specific user - implements join functionality through resource relationship"""
+    user = await db.read("users", str(user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return await db.get_user_orders(user_id)
 
-@router.get("/join/{table1}/{table2}/{key}")
-async def join_tables(
-    table1: str,
-    table2: str,
-    key: str,
+@router.get("/orders/{order_id}/user")
+async def get_order_user(
+    order_id: UUID,
     db: InMemoryDB = Depends(get_db)
-) -> List[Dict[str, Any]]:
-    return await db.join(table1, table2, key)
+) -> UserResponse:
+    """Get user details for an order - implements join functionality through resource relationship"""
+    order = await db.read("orders", str(order_id))
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return await db.get_order_user(order_id)
 ```
 
 ### 2.3 Data Models
