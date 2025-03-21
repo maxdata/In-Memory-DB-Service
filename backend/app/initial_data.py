@@ -12,7 +12,7 @@ SAMPLE_USERS = [
         "age": 30,
         "is_active": True,
         "created_at": datetime.utcnow().isoformat(),
-        "updated_at": datetime.utcnow().isoformat()
+        "updated_at": datetime.utcnow().isoformat(),
     },
     {
         "id": str(uuid4()),
@@ -21,8 +21,8 @@ SAMPLE_USERS = [
         "age": 25,
         "is_active": True,
         "created_at": datetime.utcnow().isoformat(),
-        "updated_at": datetime.utcnow().isoformat()
-    }
+        "updated_at": datetime.utcnow().isoformat(),
+    },
 ]
 
 # Sample orders
@@ -35,7 +35,7 @@ SAMPLE_ORDERS = [
         "total_price": 999.99,
         "status": "processing",
         "created_at": datetime.utcnow().isoformat(),
-        "updated_at": datetime.utcnow().isoformat()
+        "updated_at": datetime.utcnow().isoformat(),
     },
     {
         "id": str(uuid4()),
@@ -45,7 +45,7 @@ SAMPLE_ORDERS = [
         "total_price": 49.98,
         "status": "shipped",
         "created_at": datetime.utcnow().isoformat(),
-        "updated_at": datetime.utcnow().isoformat()
+        "updated_at": datetime.utcnow().isoformat(),
     },
     {
         "id": str(uuid4()),
@@ -55,13 +55,11 @@ SAMPLE_ORDERS = [
         "total_price": 129.99,
         "status": "pending",
         "created_at": datetime.utcnow().isoformat(),
-        "updated_at": datetime.utcnow().isoformat()
-    }
+        "updated_at": datetime.utcnow().isoformat(),
+    },
 ]
+
 
 def get_sample_data():
     """Get sample data for the database."""
-    return {
-        "users": SAMPLE_USERS,
-        "orders": SAMPLE_ORDERS
-    }
+    return {"users": SAMPLE_USERS, "orders": SAMPLE_ORDERS}

@@ -87,7 +87,7 @@ improvement_suggestions:
 
   security:
     - "Implement rate limiting per endpoint"
-    - "Add authentication/authorization layer"
+    - "Add VPN firewall"
     - "Implement request signing for sensitive operations"
     - "Add API key management"
 

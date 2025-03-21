@@ -78,11 +78,7 @@ services:
    - Use HTTPS in production
    - Implement rate limiting
    - Configure proper CORS settings
-
-3. Access Control
-   - Implement authentication for all endpoints
-   - Use proper authorization mechanisms
-   - Regular security audits
+   - Add VPN firewall
 
 ## Monitoring
 

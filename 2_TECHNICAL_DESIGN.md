@@ -292,7 +292,6 @@ app = FastAPI(
 2. Add database sharding
 3. Support for complex queries
 4. Implement backup/restore
-5. Add authentication/authorization
 
 ### 9.2 Scaling Strategy
 1. Horizontal scaling with load balancer

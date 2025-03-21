@@ -127,7 +127,6 @@ The In-Memory Database Service is a high-performance, lightweight database solut
 
 ### 7.1 Potential Enhancements
 - Data persistence options
-- Authentication/Authorization
 - Advanced query operations
 - Caching mechanisms
 - Horizontal scaling support
@@ -136,7 +135,6 @@ The In-Memory Database Service is a high-performance, lightweight database solut
 - Data persistence limited to runtime
 - Limited to in-memory storage
 - Basic join operations only
-- No built-in authentication
 
 ## 8. Timeline and Milestones
 
