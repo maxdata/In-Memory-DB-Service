@@ -22,9 +22,88 @@
 
 ## 2. Detailed Design
 
-### 2.1 Data Storage Implementation
+### 2.1 Project Structure
 
-#### 2.1.1 In-Memory Database Class
+#### 2.1.1 Directory Organization
+The project follows a clean architecture pattern with clear separation of concerns:
+
+```
+app/
+├── api/           # API routes/endpoints
+│   ├── v1/        # API version 1
+│   └── deps.py    # Dependency injections
+├── core/          # Core application configuration
+│   ├── config.py  # Environment variables and settings
+│   └── security.py # Security utilities
+├── db/            # Database related code
+│   ├── base.py    # Base DB class
+│   └── session.py # DB session management
+├── models/        # Database models/schemas
+│   ├── user.py
+│   └── base.py
+├── schemas/       # Pydantic models for request/response
+│   └── user.py
+├── services/      # Business logic
+│   └── user.py
+├── utils/         # Utility functions
+└── main.py        # Application entry point
+```
+
+#### 2.1.2 Component Responsibilities
+
+1. **api/**
+   - Contains all API routes organized by version
+   - Implements endpoint handlers
+   - Manages request/response lifecycle
+   - Handles dependency injection
+
+2. **core/**
+   - Application configuration management
+   - Environment variables handling
+   - Security settings and utilities
+   - Global constants and settings
+
+3. **db/**
+   - Database connection management
+   - Session handling
+   - Base database classes
+   - Database utilities
+
+4. **models/** and **schemas/**
+   - `models/`: Database models and data structures
+   - `schemas/`: Pydantic models for request/response validation
+   - Data validation and serialization
+   - Type definitions and constraints
+
+5. **services/**
+   - Business logic implementation
+   - Service layer abstraction
+   - Complex operations and workflows
+   - Data processing and transformation
+
+#### 2.1.3 Design Principles
+
+1. **Separation of Concerns**
+   - Each directory has a specific responsibility
+   - Clear boundaries between components
+   - Minimal coupling between modules
+   - Maximum cohesion within modules
+
+2. **Dependency Management**
+   - Centralized dependency injection
+   - Clear dependency flow
+   - Easy to test and mock
+   - Configurable dependencies
+
+3. **Scalability**
+   - Easy to add new features
+   - Simple to maintain
+   - Clear upgrade paths
+   - Version control friendly
+
+### 2.2 Data Storage Implementation
+
+#### 2.2.1 In-Memory Database Class
 ```python
 class InMemoryDB:
     def __init__(self):
@@ -51,9 +130,9 @@ class InMemoryDB:
         return results
 ```
 
-### 2.2 API Implementation
+### 2.3 API Implementation
 
-#### 2.2.1 Design Rationale
+#### 2.3.1 Design Rationale
 The API implementation follows REST best practices by using resource-specific endpoints instead of generic table operations. Here's why:
 
 1. **Security**:
@@ -80,7 +159,7 @@ The API implementation follows REST best practices by using resource-specific en
    - Simpler testing with specific test cases
    - Better version control and API evolution
 
-#### 2.2.2 FastAPI Router Structure
+#### 2.3.2 FastAPI Router Structure
 ```python
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
@@ -111,9 +190,9 @@ async def get_order_user(
     return await db.get_order_user(order_id)
 ```
 
-### 2.3 Data Models
+### 2.4 Data Models
 
-#### 2.3.1 Base Models
+#### 2.4.1 Base Models
 ```python
 from pydantic import BaseModel, Field
 from datetime import datetime

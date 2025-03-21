@@ -25,7 +25,7 @@ The In-Memory Database Service is a high-performance, lightweight database solut
 - **Must Have:**
   - Users Resource:
     - POST /api/v1/users - Create new user
-    - GET /api/v1/users - List users with pagination
+    - GET /api/v1/users - List users
     - GET /api/v1/users/{user_id} - Retrieve single user
     - PATCH /api/v1/users/{user_id} - Update user
     - DELETE /api/v1/users/{user_id} - Delete user
@@ -33,7 +33,7 @@ The In-Memory Database Service is a high-performance, lightweight database solut
   
   - Orders Resource:
     - POST /api/v1/orders - Create new order
-    - GET /api/v1/orders - List orders with pagination
+    - GET /api/v1/orders - List orders
     - GET /api/v1/orders/{order_id} - Retrieve single order
     - PATCH /api/v1/orders/{order_id} - Update order
     - DELETE /api/v1/orders/{order_id} - Delete order
@@ -58,29 +58,15 @@ The In-Memory Database Service is a high-performance, lightweight database solut
       "error": {  // Only present if status is "error"
         "code": "ERROR_CODE",
         "message": "Human readable message"
-      },
-      "meta": {   // Pagination/filtering metadata
-        "page": 1,
-        "per_page": 20,
-        "total": 100
       }
     }
     ```
   - Proper HTTP status codes:
-    - 200: Successful GET/PATCH
-    - 201: Successful POST
-    - 204: Successful DELETE
+    - 200: Success (for GET, PATCH, DELETE)
+    - 201: Created (for POST)
     - 400: Bad Request
-    - 401: Unauthorized
-    - 403: Forbidden
     - 404: Not Found
-    - 422: Validation Error
-    - 429: Too Many Requests
     - 500: Internal Server Error
-  - Query parameter support:
-    - Pagination: ?page=1&per_page=20
-    - Sorting: ?sort=created_at:desc
-    - Filtering: ?status=active&created_after=2024-01-01
   - Response headers:
     - X-Rate-Limit-Limit
     - X-Rate-Limit-Remaining
@@ -142,7 +128,6 @@ class OrderResponse(OrderBase):
   - Input validation using Pydantic models
   - Rate limiting per client/IP
   - CORS configuration with allowed origins
-  - Secure headers (HSTS, CSP, X-Frame-Options)
   - Request size limits
   - Sanitized error messages
   - Dependency injection for shared resources
@@ -185,18 +170,10 @@ class OrderResponse(OrderBase):
 - Background task support for long-running operations
 
 ### 3.3 Security Requirements
-- **Authentication & Authorization:**
-  - JWT-based authentication
-  - Role-based access control (RBAC)
-  - Session management
-  - Password hashing with bcrypt
 - **API Security:**
   - Rate limiting (max 100 requests per minute per client)
   - Request size limits (max 1MB per request)
   - CORS with specific origin configuration
-  - Content-Security-Policy headers
-  - X-Frame-Options headers
-  - HTTP Strict Transport Security (HSTS)
 - **Error Handling:**
   - Custom exception handlers
   - Sanitized error messages in production
@@ -206,7 +183,7 @@ class OrderResponse(OrderBase):
 ### 3.4 Monitoring Requirements
 - Health check endpoints (/health)
 - Readiness check endpoints (/ready)
-- Prometheus metrics endpoint (/metrics)
+- Pydantic LogFire metrics endpoint (/metrics)
 - Structured logging with correlation IDs
 - Performance metrics collection
 - Error rate monitoring
@@ -220,13 +197,11 @@ class OrderResponse(OrderBase):
   - Test data models and validators
   - Test utility functions
   - Test database operations
-  - Test authentication/authorization
   - Mock external dependencies
 
 - **Integration Tests:**
   - Test API endpoints with database
   - Test join operations
-  - Test authentication flow
   - Test rate limiting
   - Test error handling
   - Test background tasks
@@ -240,7 +215,6 @@ class OrderResponse(OrderBase):
 
 - **Security Tests:**
   - Input validation testing
-  - Authentication bypass testing
   - Rate limit testing
   - CORS policy testing
   - SQL injection testing
@@ -311,6 +285,27 @@ class OrderResponse(OrderBase):
 - Advanced query operations
 - Caching mechanisms
 - Horizontal scaling support
+- Pagination support including:
+  - Paginated list endpoints with page and per_page parameters
+  - Metadata for total records and page information
+  - Consistent pagination across all list endpoints
+  - Efficient handling of large datasets
+- Query parameter support:
+  - Sorting capabilities (e.g., ?sort=created_at:desc)
+  - Filtering options (e.g., ?status=active&created_after=2024-01-01)
+  - Dynamic field filtering
+  - Multiple sort criteria
+- Authentication & Authorization features:
+  - JWT-based authentication
+  - Role-based access control (RBAC)
+  - Session management
+  - Password hashing with bcrypt
+  - User roles and permissions
+  - Secure password reset flow
+  - API key support
+  - Authentication bypass prevention
+  - Authorization rules and policies
+  - Token management and refresh
 
 ### 7.2 Known Limitations
 - Data persistence limited to runtime
