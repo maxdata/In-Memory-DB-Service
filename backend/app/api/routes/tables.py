@@ -1,11 +1,11 @@
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.api.deps import MemoryDBDep
-from app.models import Message, Order, User, UserOrder
+from backend.app.model.user import Message, Order, User
 
 router = APIRouter(prefix="/api/v1", tags=["tables"])
 
@@ -14,11 +14,11 @@ TABLE_MODELS = {"users": User, "orders": Order}
 
 
 class GenericCreate(BaseModel):
-    data: Dict[str, Any]
+    data: dict[str, Any]
 
 
-@router.post("/data/{table}", response_model=Dict[str, Any])
-def add_record(*, db: MemoryDBDep, table: str, record: GenericCreate) -> Dict[str, Any]:
+@router.post("/data/{table}", response_model=dict[str, Any])
+def add_record(*, db: MemoryDBDep, table: str, record: GenericCreate) -> dict[str, Any]:
     """
     Add a record to the specified table.
     """
@@ -38,10 +38,10 @@ def add_record(*, db: MemoryDBDep, table: str, record: GenericCreate) -> Dict[st
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.put("/data/{table}/{record_id}", response_model=Dict[str, Any])
+@router.put("/data/{table}/{record_id}", response_model=dict[str, Any])
 def update_record(
     *, db: MemoryDBDep, table: str, record_id: UUID, record: GenericCreate
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Update a record in the specified table.
     """
@@ -83,10 +83,10 @@ def delete_record(*, db: MemoryDBDep, table: str, record_id: UUID) -> Message:
     return Message(message=f"Record deleted successfully from {table}")
 
 
-@router.get("/api/v1/tables/join", response_model=List[Dict[str, Dict[str, Any]]])
+@router.get("/api/v1/tables/join", response_model=list[dict[str, dict[str, Any]]])
 def join_tables(
     *, db: MemoryDBDep, table1: str, table2: str, key: str
-) -> List[Dict[str, Dict[str, Any]]]:
+) -> list[dict[str, dict[str, Any]]]:
     """
     Join two tables based on a common key.
     Currently supports joining users and orders tables.
@@ -130,8 +130,8 @@ def join_tables(
         )
 
 
-@router.get("/data/{table}/dump", response_model=Dict[str, Any])
-def dump_table(*, db: MemoryDBDep, table: str) -> Dict[str, Any]:
+@router.get("/data/{table}/dump", response_model=dict[str, Any])
+def dump_table(*, db: MemoryDBDep, table: str) -> dict[str, Any]:
     """
     Dump all contents of the specified table.
     """
@@ -139,11 +139,11 @@ def dump_table(*, db: MemoryDBDep, table: str) -> Dict[str, Any]:
         raise HTTPException(status_code=404, detail=f"Table {table} not found")
 
     if table == "users":
-        data = cast(List[User], db.list_users())
+        data = cast(list[User], db.list_users())
         return {
             "data": [user.model_dump(exclude={"hashed_password"}) for user in data],
             "count": len(data),
         }
     else:  # table == "orders"
-        data = cast(List[Order], db.list_orders())
+        data = cast(list[Order], db.list_orders())
         return {"data": [order.model_dump() for order in data], "count": len(data)}

@@ -1,9 +1,8 @@
 """Sample data for testing the in-memory database service."""
 
 import json
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, TypedDict, Union
+from typing import TypedDict
 
 
 class UserData(TypedDict):
@@ -27,13 +26,13 @@ class OrderData(TypedDict):
     updated_at: str
 
 
-def load_sample_data() -> Dict[str, Union[List[UserData], List[OrderData]]]:
+def load_sample_data() -> dict[str, list[UserData] | list[OrderData]]:
     """Load sample data from JSON file."""
     json_path = Path(__file__).parent / "sample_data.json"
-    with open(json_path, "r") as f:
+    with open(json_path) as f:
         return json.load(f)
 
 
-def get_sample_data() -> Dict[str, Union[List[UserData], List[OrderData]]]:
+def get_sample_data() -> dict[str, list[UserData] | list[OrderData]]:
     """Get sample data for the database."""
     return load_sample_data()

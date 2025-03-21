@@ -1,20 +1,21 @@
-from typing import Dict, List, Optional, TypedDict, Union, cast
-from uuid import UUID, uuid4
 from datetime import datetime
+from typing import Any, cast
+from uuid import UUID, uuid4
 
-from app.models import Order, User, UserOrder
-from app.initial_data import UserData, OrderData, get_sample_data
+from backend.app.db.initial_data import OrderData, UserData, get_sample_data
+from backend.app.model.user import Order, User, UserOrder
 
+# 
 
 class MemoryDB:
     def __init__(self) -> None:
-        self.users: Dict[UUID, User] = {}
-        self.orders: Dict[UUID, Order] = {}
+        self.users: dict[UUID, User] = {}
+        self.orders: dict[UUID, Order] = {}
 
     def init_db(self) -> None:
         """Initialize the database with sample data."""
         sample_data = get_sample_data()
-        
+
         # Add users
         for user_data in sample_data["users"]:
             user_dict = cast(UserData, user_data)
@@ -58,23 +59,23 @@ class MemoryDB:
         self.orders[order.id] = order
         return order
 
-    def get_user(self, user_id: UUID) -> Optional[User]:
+    def get_user(self, user_id: UUID) -> User | None:
         """Get a user by ID."""
         return self.users.get(user_id)
 
-    def get_order(self, order_id: UUID) -> Optional[Order]:
+    def get_order(self, order_id: UUID) -> Order | None:
         """Get an order by ID."""
         return self.orders.get(order_id)
 
-    def list_users(self) -> List[User]:
+    def list_users(self) -> list[User]:
         """List all users."""
         return list(self.users.values())
 
-    def list_orders(self) -> List[Order]:
+    def list_orders(self) -> list[Order]:
         """List all orders."""
         return list(self.orders.values())
 
-    def update_user(self, user_id: UUID, data: Dict[str, Any]) -> Optional[User]:
+    def update_user(self, user_id: UUID, data: dict[str, Any]) -> User | None:
         """Update a user's data."""
         if user_id not in self.users:
             return None
@@ -84,7 +85,7 @@ class MemoryDB:
                 setattr(user, key, value)
         return user
 
-    def update_order(self, order_id: UUID, data: Dict[str, Any]) -> Optional[Order]:
+    def update_order(self, order_id: UUID, data: dict[str, Any]) -> Order | None:
         """Update an order's data."""
         if order_id not in self.orders:
             return None
@@ -108,9 +109,9 @@ class MemoryDB:
             return True
         return False
 
-    def join_user_orders(self) -> List[UserOrder]:
+    def join_user_orders(self) -> list[UserOrder]:
         """Join users and orders data."""
-        joined_data: List[UserOrder] = []
+        joined_data: list[UserOrder] = []
         for order in self.orders.values():
             user = self.users.get(order.user_id)
             if user:
@@ -127,3 +128,6 @@ class MemoryDB:
                     )
                 )
         return joined_data
+
+
+db = MemoryDB()

@@ -4,7 +4,7 @@ from uuid import uuid4
 from datetime import datetime
 from typing import Dict, Any
 
-from app.models import User, Order
+from backend.app.model.user import User, Order
 
 def create_test_user(email: str = None) -> dict:
     """Create a test user with random data.

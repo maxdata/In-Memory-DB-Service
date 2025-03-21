@@ -1,5 +1,11 @@
 """Tests for user-related functionality in the in-memory database service."""
 
+
+# Change to unit test pytest
+# mock ?
+
+# more edge cases: user_id avaialbe and not available
+
 from fastapi.testclient import TestClient
 
 from app.core.config import settings

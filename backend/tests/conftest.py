@@ -5,9 +5,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
-from app.core.db import memory_db, init_db
+from backend.app.db.db import memory_db, init_db
 from app.main import app
-from app.models import User, Order, UserCreate
+from backend.app.model.user import User, Order, UserCreate
 from tests.test_utils import random_lower_string
 
 
@@ -57,20 +57,20 @@ def client() -> Generator[TestClient, None, None]:
 @pytest.fixture(scope="function")
 def test_user(setup_test_db: Dict) -> User:
     """Create and return a test user for use in tests."""
-    from app import crud
-    user = crud.create_user(data=setup_test_db["test_user"])
+    from backend.app.service import order
+    user = order.create_user(data=setup_test_db["test_user"])
     return user
 
 
 @pytest.fixture(scope="function")
 def test_order(test_user: User) -> Order:
     """Create and return a test order linked to the test user."""
-    from app import crud
+    from backend.app.service import order
     order_data = {
         "product": "Test Product",
         "quantity": 1,
         "user_id": str(test_user.id)
     }
-    order = crud.create_order(data=order_data)
+    order = order.create_order(data=order_data)
     return order
 

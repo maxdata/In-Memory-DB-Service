@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from app.models import InMemoryDB, db
+from backend.app.model.user import InMemoryDB, db
 
 
 def get_memory_db() -> InMemoryDB:

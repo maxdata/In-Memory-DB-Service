@@ -1,18 +1,22 @@
 """Main FastAPI application module."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict, List
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .crud import db
+from .service.order import db
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize and clean up the database."""
+
+    # Load sample data
+
     # Initialize database tables
     db.clear_table("users")
     db.clear_table("orders")
@@ -41,7 +45,7 @@ app.add_middleware(
 
 # Exception handlers
 @app.exception_handler(KeyError)
-async def key_error_handler(request: Request, exc: KeyError) -> JSONResponse:
+async def key_error_handler(_request: Request, exc: KeyError) -> JSONResponse:
     """Handle KeyError exceptions."""
     return JSONResponse(
         status_code=404,
@@ -50,7 +54,7 @@ async def key_error_handler(request: Request, exc: KeyError) -> JSONResponse:
 
 
 @app.exception_handler(ValueError)
-async def value_error_handler(request: Request, exc: ValueError) -> JSONResponse:
+async def value_error_handler(_request: Request, exc: ValueError) -> JSONResponse:
     """Handle ValueError exceptions."""
     return JSONResponse(
         status_code=400,
@@ -59,8 +63,8 @@ async def value_error_handler(request: Request, exc: ValueError) -> JSONResponse
 
 
 # API endpoints
-@app.post("/api/v1/tables/{table}/records", response_model=Dict[str, Any])
-async def add_record(table: str, data: Dict[str, Any]) -> Dict[str, Any]:
+@app.post("/api/v1/tables/{table}/records", response_model=dict[str, Any])
+async def add_record(table: str, data: dict[str, Any]) -> dict[str, Any]:
     """
     Add a new record to the specified table.
 
@@ -80,8 +84,8 @@ async def add_record(table: str, data: Dict[str, Any]) -> Dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/api/v1/tables/{table}/records/{record_id}", response_model=Dict[str, Any])
-async def get_record(table: str, record_id: str) -> Dict[str, Any]:
+@app.get("/api/v1/tables/{table}/records/{record_id}", response_model=dict[str, Any])
+async def get_record(table: str, record_id: str) -> dict[str, Any]:
     """
     Get a record from the specified table by ID.
 
@@ -100,8 +104,10 @@ async def get_record(table: str, record_id: str) -> Dict[str, Any]:
     return record
 
 
-@app.put("/api/v1/tables/{table}/records/{record_id}", response_model=Dict[str, Any])
-async def update_record(table: str, record_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+@app.put("/api/v1/tables/{table}/records/{record_id}", response_model=dict[str, Any])
+async def update_record(
+    table: str, record_id: str, data: dict[str, Any]
+) -> dict[str, Any]:
     """
     Update a record in the specified table.
 
@@ -119,7 +125,7 @@ async def update_record(table: str, record_id: str, data: Dict[str, Any]) -> Dic
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.delete("/api/v1/tables/{table}/records/{record_id}", response_model=Dict[str, Any])
+@app.delete("/api/v1/tables/{table}/records/{record_id}", response_model=dict[str, Any])
 async def delete_record(table: str, record_id: str) -> bool:
     """
     Delete a record from the specified table.
@@ -137,8 +143,10 @@ async def delete_record(table: str, record_id: str) -> bool:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/api/v1/tables/join", response_model=List[Dict[str, Any]])
-async def join_tables(table1: str, table2: str, key: str) -> List[Dict[str, Dict[str, Any]]]:
+@app.get("/api/v1/tables/join", response_model=list[dict[str, Any]])
+async def join_tables(
+    table1: str, table2: str, key: str
+) -> list[dict[str, dict[str, Any]]]:
     """
     Join two tables based on a common key.
 
@@ -156,8 +164,8 @@ async def join_tables(table1: str, table2: str, key: str) -> List[Dict[str, Dict
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/api/v1/tables/{table}/dump", response_model=List[Dict[str, Any]])
-async def dump_table(table: str) -> List[Dict[str, Any]]:
+@app.get("/api/v1/tables/{table}/dump", response_model=list[dict[str, Any]])
+async def dump_table(table: str) -> list[dict[str, Any]]:
     """
     Dump all contents of the specified table.
 
