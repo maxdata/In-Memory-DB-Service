@@ -3,20 +3,23 @@ CRUD operations for the in-memory database service.
 """
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict, List, Optional, TypeVar, Union, cast
 from uuid import UUID
 
 from .models import Order, User, UserCreate
 
+# Define a generic type for models
+ModelT = TypeVar('ModelT', User, Order)
+
 # In-memory storage using dictionaries
-tables: dict[str, dict[str, Any]] = {"users": {}, "orders": {}}
+tables: Dict[str, Dict[str, Dict[str, Any]]] = {"users": {}, "orders": {}}
 
 
 class InMemoryDB:
     """In-memory database implementation."""
 
     @staticmethod
-    def add_record(table: str, record_id: str, data: dict) -> dict:
+    def add_record(table: str, record_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Add a record to the specified table."""
         if table not in tables:
             raise KeyError(f"Table {table} does not exist")
@@ -32,7 +35,7 @@ class InMemoryDB:
         return data
 
     @staticmethod
-    def get_record(table: str, record_id: str) -> dict | None:
+    def get_record(table: str, record_id: str) -> Optional[Dict[str, Any]]:
         """Get a record from the specified table."""
         if table not in tables:
             raise KeyError(f"Table {table} does not exist")
@@ -40,7 +43,7 @@ class InMemoryDB:
         return tables[table].get(record_id)
 
     @staticmethod
-    def update_record(table: str, record_id: str, data: dict) -> dict:
+    def update_record(table: str, record_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Update a record in the specified table."""
         if table not in tables:
             raise KeyError(f"Table {table} does not exist")
@@ -57,16 +60,16 @@ class InMemoryDB:
         return updated_record
 
     @staticmethod
-    def delete_record(table: str, record_id: str) -> dict:
+    def delete_record(table: str, record_id: str) -> bool:
         """Delete a record from the specified table."""
         if table not in tables:
             raise KeyError(f"Table {table} does not exist")
 
         if record_id not in tables[table]:
-            raise KeyError(f"Record {record_id} not found in table {table}")
+            return False
 
         # Handle cascading deletes for orders when deleting a user
-        record = tables[table].pop(record_id)
+        tables[table].pop(record_id)
         if table == "users":
             # Delete all orders for this user
             orders_to_delete = [
@@ -77,10 +80,10 @@ class InMemoryDB:
             for order_id in orders_to_delete:
                 tables["orders"].pop(order_id)
 
-        return record
+        return True
 
     @staticmethod
-    def join_tables(table1: str, table2: str, key: str) -> list[dict]:
+    def join_tables(table1: str, table2: str, key: str) -> List[Dict[str, Dict[str, Any]]]:
         """Join two tables based on a common key."""
         if table1 not in tables or table2 not in tables:
             raise KeyError(f"One or both tables not found: {table1}, {table2}")
@@ -102,7 +105,7 @@ class InMemoryDB:
         return result
 
     @staticmethod
-    def dump_table(table: str) -> list[dict]:
+    def dump_table(table: str) -> List[Dict[str, Any]]:
         """Dump all contents of the specified table."""
         if table not in tables:
             raise KeyError(f"Table {table} does not exist")
@@ -122,57 +125,63 @@ class InMemoryDB:
 db = InMemoryDB()
 
 
-def create_user(*, data: dict[str, Any] | UserCreate) -> User:
+def create_user(*, data: Union[Dict[str, Any], UserCreate]) -> User:
     """Create a new user in the in-memory database."""
     if isinstance(data, UserCreate):
         user_data = data.model_dump()
     else:
         user_data = data
     user = User(**user_data)
-    return db.add_record("users", user.id, user.dict())
+    db.add_record("users", str(user.id), user.model_dump())
+    return user
 
 
-def get_user(*, user_id: UUID) -> User | None:
+def get_user(*, user_id: UUID) -> Optional[User]:
     """Get a user by ID from the in-memory database."""
-    return db.get_record("users", user_id)
+    result = db.get_record("users", str(user_id))
+    return User(**result) if result else None
 
 
-def update_user(*, user_id: UUID, data: dict[str, Any]) -> User | None:
+def update_user(*, user_id: UUID, data: Dict[str, Any]) -> Optional[User]:
     """Update a user in the in-memory database."""
-    return db.update_record("users", user_id, data)
+    result = db.update_record("users", str(user_id), data)
+    return User(**result) if result else None
 
 
 def delete_user(*, user_id: UUID) -> bool:
     """Delete a user from the in-memory database."""
-    return db.delete_record("users", user_id)
+    return db.delete_record("users", str(user_id))
 
 
-def list_users() -> list[User]:
+def list_users() -> List[User]:
     """List all users in the in-memory database."""
-    return db.dump_table("users")
+    return [User(**user_data) for user_data in db.dump_table("users")]
 
 
-def create_order(*, data: dict[str, Any]) -> Order:
+def create_order(*, data: Dict[str, Any]) -> Order:
     """Create a new order in the in-memory database."""
     order = Order(**data)
-    return db.add_record("orders", order.id, order.dict())
+    db.add_record("orders", str(order.id), order.model_dump())
+    return order
 
 
-def get_order(*, order_id: UUID) -> Order | None:
+def get_order(*, order_id: UUID) -> Optional[Order]:
     """Get an order by ID from the in-memory database."""
-    return db.get_record("orders", order_id)
+    result = db.get_record("orders", str(order_id))
+    return Order(**result) if result else None
 
 
-def update_order(*, order_id: UUID, data: dict[str, Any]) -> Order | None:
+def update_order(*, order_id: UUID, data: Dict[str, Any]) -> Optional[Order]:
     """Update an order in the in-memory database."""
-    return db.update_record("orders", order_id, data)
+    result = db.update_record("orders", str(order_id), data)
+    return Order(**result) if result else None
 
 
 def delete_order(*, order_id: UUID) -> bool:
     """Delete an order from the in-memory database."""
-    return db.delete_record("orders", order_id)
+    return db.delete_record("orders", str(order_id))
 
 
-def list_orders() -> list[Order]:
+def list_orders() -> List[Order]:
     """List all orders in the in-memory database."""
-    return db.dump_table("orders")
+    return [Order(**order_data) for order_data in db.dump_table("orders")]
