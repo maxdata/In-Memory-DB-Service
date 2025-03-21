@@ -30,14 +30,18 @@ This service provides a production-ready foundation for building RESTful APIs wi
 
 ```
 in-memory-db-service/
-├── backend/               # Main application code
-│   ├── app/              # FastAPI application
-│   ├── tests/            # Test suite
-│   ├── scripts/          # Utility scripts
-│   └── Dockerfile        # Application container definition
-├── deploy/               # Deployment configurations
-├── Makefile             # Unified command interface
-└── README.md            # Project documentation
+├── backend/                # Main service implementation
+│   ├── app/               # FastAPI application code
+│   ├── tests/             # Test suite
+│   └── scripts/           # Utility scripts
+├── deploy/                # Deployment and infrastructure
+├── .github/               # CI/CD and GitHub configurations
+├── Makefile              # Development and build commands
+├── 1_PRODUCT_REQUIREMENTS.md    # Product specifications
+├── 2_TECHNICAL_DESIGN.md        # System architecture
+├── 3_EVALUATION.yaml            # Quality criteria
+├── 4_CONTRIBUTING.md            # Contribution guidelines
+└── README.md             # Project overview
 ```
 
 ## Technical Capabilities
