@@ -1,0 +1,55 @@
+name: Test Backend
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.4.15"
+          enable-cache: true
+      - run: docker compose down -v --remove-orphans
+      - run: docker compose up -d db mailcatcher
+      - name: Migrate DB
+        run: uv run bash scripts/prestart.sh
+        working-directory: backend
+      - name: Install dependencies
+        run: |
+          uv pip install -r requirements.txt
+          uv pip install pytest pytest-cov httpx
+        working-directory: backend
+      - name: Run FastAPI tests
+        run: |
+          uv run pytest --cov=app --cov-report=html tests/
+          uv run pytest tests/ -v
+        working-directory: backend
+      - name: Test API endpoints with sample data
+        run: |
+          docker compose up -d api
+          sleep 5  # Wait for API to be ready
+          curl -X POST http://localhost:8000/add_record/users -d @sample_data/users.json
+          curl -X GET http://localhost:8000/join/users/orders/user_id
+        working-directory: backend
+      - run: docker compose down -v --remove-orphans
+      - name: Store coverage files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: backend/htmlcov
+          include-hidden-files: true

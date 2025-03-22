@@ -1,0 +1,44 @@
+[project]
+name = "in-memory-db-service"
+version = "0.1.0"
+description = "In-memory database service with FastAPI"
+requires-python = ">=3.11"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+fastapi = "0.95.2"
+starlette = "0.26.1"
+httpx = "0.24.1"
+uvicorn = "0.27.1"
+pydantic = {version = "2.6.3", extras = ["email"]}
+python-multipart = "0.0.9"
+python-jose = {version = "3.3.0", extras = ["cryptography"]}
+passlib = {version = "1.7.4", extras = ["bcrypt"]}
+python-dotenv = "1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "8.1.1"
+pytest-cov = "4.1.0"
+pytest-watch = "4.2.0"
+black = "24.2.0"
+isort = "5.13.2"
+mypy = "1.9.0"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=app --cov-report=term-missing"
