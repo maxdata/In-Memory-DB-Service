@@ -8,14 +8,14 @@
   - [2.1 Project Structure](#21-project-structure)
     - [2.1.1 Application Directory](#211-application-directory-app)
     - [2.1.2 Test Directory](#212-test-directory-tests)
-  - [2.2 Data Storage Implementation](#22-data-storage-implementation)
-    - [2.2.1 In-Memory Database Class](#221-in-memory-database-class)
-    - [2.2.2 Singleton Pattern Implementation](#222-singleton-pattern-implementation)
-  - [2.4 Model Hierarchy and Layer Analysis](#24-model-hierarchy-and-layer-analysis)
-    - [2.4.1 Layer Dependencies and Project Structure](#241-layer-dependencies-and-project-structure)
-    - [2.4.2 Layer-by-Layer Analysis](#242-layer-by-layer-analysis)
-    - [2.4.3 Design Principles](#243-design-principles)
-    - [2.4.4 Interaction Flow Examples](#244-interaction-flow-examples)
+  - [2.2 Model Hierarchy and Layer Analysis](#22-model-hierarchy-and-layer-analysis)
+    - [2.2.1 Layer Dependencies and Project Structure](#221-layer-dependencies-and-project-structure)
+    - [2.2.2 Layer-by-Layer Analysis](#222-layer-by-layer-analysis)
+    - [2.2.3 Design Principles](#223-design-principles)
+    - [2.2.4 Interaction Flow Examples](#224-interaction-flow-examples)
+  - [2.3 Data Storage Implementation](#23-data-storage-implementation)
+    - [2.3.1 In-Memory Database Class](#231-in-memory-database-class)
+    - [2.3.2 Singleton Pattern Implementation](#232-singleton-pattern-implementation)
 - [3. Technical Implementation Details](#3-technical-implementation-details)
   - [3.1 Concurrency Handling](#31-concurrency-handling)
   - [3.2 Performance Optimizations](#32-performance-optimizations)
@@ -83,39 +83,9 @@ The test suite is organized to cover different testing scenarios:
 └── test_reports/               # Generated test reports
 ```
 
-### 2.2 Data Storage Implementation
+### 2.2 Model Hierarchy and Layer Analysis
 
-#### 2.2.1 In-Memory Database Class
-The core database functionality is implemented in [db/base.py](./db/base.py) which provides:
-- Singleton pattern implementation
-- Table-level locking for concurrent operations
-- Async/await support
-- Generic CRUD operations
-- Custom error handling
-
-#### 2.2.2 Singleton Pattern Implementation
-The in-memory database uses the Singleton pattern to ensure only one database instance exists throughout the application lifecycle. This is crucial for maintaining consistent state across all API endpoints.
-
-1. **Core Implementation in `InMemoryDB`**:
-See implementation in [db/base.py](./db/base.py)
-
-2. **Usage in FastAPI Application**:
-See implementation in [main.py](./main.py)
-
-3. **Dependency Injection**:
-See implementation in [api/deps.py](./api/deps.py)
-
-The Singleton pattern ensures:
-- Only one database instance exists application-wide
-- All API endpoints work with the same data store
-- Consistent state management across requests
-- Thread-safe initialization and access
-- Efficient memory usage by preventing multiple instances
-- Simplified dependency injection in FastAPI
-
-### 2.4 Model Hierarchy and Layer Analysis
-
-### 2.4.1 Layer Dependencies and Project Structure
+#### 2.2.1 Layer Dependencies and Project Structure
 ```
 @app
 ├── db/      (lowest)  → Pure data storage, no app dependencies
@@ -125,73 +95,107 @@ The Singleton pattern ensures:
 └── api/    (highest) → API endpoints and routing
 ```
 
-### 2.4.2 Layer-by-Layer Analysis
+#### 2.2.2 Layer-by-Layer Analysis
 
-#### @db (Lowest Level)
-- **Description**: The database layer only handles raw data operations
+##### @db (Lowest Level)
+- **Description**: Core database operations with table-level locking and concurrency support
 - **Key Characteristics**:
-  - Never imports from other app modules
-  - Only deals with raw data (dictionaries)
-  - Provides generic CRUD operations
-  - No knowledge of models or business logic
+  - Implements Singleton pattern for single database instance
+  - Table-level locking using asyncio.Lock
+  - Thread-safe concurrent operations
+  - Clear error hierarchy with custom exceptions
+  - Async/await support for all operations
 - **Key Files**:
-  - `base.py`: Core InMemoryDB implementation with generic operations and table-level locking
+  - `base.py`: Core InMemoryDB implementation with:
+    - CRUD operations with table-level locking
+    - Singleton pattern implementation
+    - Custom error types (DatabaseError, DuplicateRecordError, etc.)
   - `initial_data.py`: Seed data and initialization
-- **Dependencies**: Only standard library (collections, typing, asyncio)
-- **Evaluation**: Aligns with clean architecture principles by isolating database operations from business logic
+  - `sample_data.json`: Sample data for development/testing
+- **Dependencies**: Standard library only (collections, typing, asyncio)
+- **Evaluation**: Strong implementation of concurrent data access patterns and error handling
 
-#### @models
-- **Description**: Defines core data structures and validation
+##### @models
+- **Description**: Core data structures and domain models
 - **Key Characteristics**:
-  - Defines fundamental data structures
-  - No dependencies on @db or @services
-  - Used by both @schemas and @services
+  - Defines domain entities and relationships
+  - Implements business rules and constraints
+  - Used by services layer for data manipulation
 - **Key Files**:
-  - `user.py`: User model definition and validation
-  - `order.py`: Order model definition and validation
-- **Dependencies**: External libraries only (e.g., Pydantic)
-- **Evaluation**: Consistent with FastAPI's use of Pydantic models for data validation
+  - Domain model definitions
+  - Data validation rules
+  - Entity relationships
+- **Dependencies**: Minimal external dependencies
+- **Evaluation**: Clear separation of domain logic from other concerns
 
-#### @schemas
-- **Description**: API-specific data validation layer
+##### @schemas
+- **Description**: API-specific data validation and serialization
 - **Key Characteristics**:
-  - Extends @models for API validation
-  - Used for request/response validation
-  - Depends on @models
+  - Pydantic models for request/response validation
+  - Clear separation between input and output schemas
+  - Detailed field validation and documentation
+  - Example data for API documentation
 - **Key Files**:
-  - `base.py`: Base schemas and common validators
-  - `user.py`: User request/response schemas
-  - `order.py`: Order request/response schemas
-- **Dependencies**: @models
-- **Evaluation**: Follows FastAPI conventions for request/response validation
+  - `user.py`: User-related schemas with:
+    - Input validation (UserCreate, UserUpdate)
+    - Response formatting (UserResponse)
+    - Field documentation and examples
+- **Dependencies**: Pydantic, domain models
+- **Evaluation**: Well-structured data validation with good API documentation support
 
-#### @services (High Level)
-- **Description**: Business logic and coordination layer
+##### @services (High Level)
+- **Description**: Business logic and transaction management
 - **Key Characteristics**:
-  - Coordinates between models and database
-  - Implements business logic
-  - Depends on both @models and @db
-  - Never imports from @schemas
+  - Implements use cases and business rules
+  - Handles data transformation and validation
+  - Manages transactions and error handling
+  - Provides clean interface for API layer
 - **Key Files**:
-  - `user_service.py`: User-related business logic
-  - `order_service.py`: Order-related business logic
-- **Dependencies**: @models, @db
-- **Evaluation**: Strong adherence to clean architecture principles
+  - `user_service.py`: User operations with:
+    - CRUD operations with proper error handling
+    - Data transformation between schemas and storage
+    - Business logic implementation
+    - Async operation support
+- **Dependencies**: @db, @models, @schemas
+- **Evaluation**: Clean separation of business logic with proper error handling
 
-#### @api (Highest Level)
-- **Description**: API endpoints and request handling
+##### @api (Highest Level)
+- **Description**: HTTP interface and request handling
 - **Key Characteristics**:
-  - Routes HTTP requests to appropriate services
-  - Handles request/response formatting
-  - Manages API versioning
-  - Implements dependency injection
+  - Versioned API endpoints (v1)
+  - Dependency injection setup
+  - Request/response handling
+  - Error translation to HTTP responses
 - **Key Files**:
   - `v1/`: API version 1 endpoints
-  - `deps.py`: Dependency injection utilities
+  - `deps.py`: Dependency injection configuration
+  - `main.py`: API route registration
 - **Dependencies**: @services, @schemas
-- **Evaluation**: Clean separation of routing from business logic
+- **Evaluation**: Well-organized API structure with proper versioning
 
-### 2.4.3 Design Principles
+##### @core
+- **Description**: Application configuration and shared utilities
+- **Key Characteristics**:
+  - Environment configuration
+  - Application settings
+  - Shared constants and utilities
+- **Key Files**:
+  - `config.py`: Application configuration
+- **Dependencies**: Minimal external dependencies
+- **Evaluation**: Centralized configuration management
+
+##### @utils
+- **Description**: Shared utility functions and helpers
+- **Key Characteristics**:
+  - Common utility functions
+  - Shared helper methods
+  - Reusable components
+- **Key Files**:
+  - `utils.py`: Utility functions and helpers
+- **Dependencies**: Standard library
+- **Evaluation**: Good separation of reusable functionality
+
+#### 2.2.3 Design Principles
 
 1. **Separation of Concerns**:
    - Each directory has a specific responsibility
@@ -211,7 +215,7 @@ The Singleton pattern ensures:
    - Clear upgrade paths
    - Version control friendly
 
-### 2.4.4 Interaction Flow Examples
+#### 2.2.4 Interaction Flow Examples
 
 1. **Creating a User**:
 ```
@@ -226,6 +230,36 @@ API Route → OrderService.get_user_orders(user_id: UUID) →
     → InMemoryDB.list("orders") [from @db] →
         → Filter orders by user_id [in service layer]
 ```
+
+### 2.3 Data Storage Implementation
+
+#### 2.3.1 In-Memory Database Class
+The core database functionality is implemented in [db/base.py](./db/base.py) which provides:
+- Singleton pattern implementation
+- Table-level locking for concurrent operations
+- Async/await support
+- Generic CRUD operations
+- Custom error handling
+
+#### 2.3.2 Singleton Pattern Implementation
+The in-memory database uses the Singleton pattern to ensure only one database instance exists throughout the application lifecycle. This is crucial for maintaining consistent state across all API endpoints.
+
+1. **Core Implementation in `InMemoryDB`**:
+See implementation in [db/base.py](./db/base.py)
+
+2. **Usage in FastAPI Application**:
+See implementation in [main.py](./main.py)
+
+3. **Dependency Injection**:
+See implementation in [api/deps.py](./api/deps.py)
+
+The Singleton pattern ensures:
+- Only one database instance exists application-wide
+- All API endpoints work with the same data store
+- Consistent state management across requests
+- Thread-safe initialization and access
+- Efficient memory usage by preventing multiple instances
+- Simplified dependency injection in FastAPI
 
 ## 3. Technical Implementation Details
 

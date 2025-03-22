@@ -1,8 +1,8 @@
 """
-FastAPI dependency module that provides access to the singleton database instance.
+FastAPI dependency module that provides access to services through dependency injection.
 
-This module demonstrates how the singleton pattern ensures consistent database access
-across all API endpoints through FastAPI's dependency injection system.
+This module demonstrates proper layering by providing service-level dependencies
+rather than direct database access.
 """
 
 from typing import Annotated
@@ -10,25 +10,34 @@ from typing import Annotated
 from fastapi import Depends
 
 from app.db.base import InMemoryDB
+from app.services.user_service import UserService
+from app.services.order_service import OrderService
 
 
 def get_memory_db() -> InMemoryDB:
     """
-    Dependency to get the in-memory database instance.
-
-    Due to InMemoryDB's singleton pattern:
-    1. This function can be called many times by different endpoints
-    2. Each call to InMemoryDB() returns the same instance
-    3. No matter how many times FastAPI injects this dependency, it's always the same database
-
-    This ensures we're using the same database instance across all requests.
+    Internal dependency to get the in-memory database instance.
+    This should only be used by service-level dependencies.
     """
-    # Returns the singleton instance - InMemoryDB() will always return the same instance
-    # due to the singleton pattern implemented in the InMemoryDB class
     return InMemoryDB()
 
 
-# Type-annotated dependency for FastAPI
-# When this type is used in endpoint parameters, FastAPI will call get_memory_db()
-# The singleton pattern ensures it's always the same database instance
-MemoryDBDep = Annotated[InMemoryDB, Depends(get_memory_db)]
+def get_user_service() -> UserService:
+    """
+    Dependency to get the UserService instance.
+    Uses the singleton database instance internally.
+    """
+    return UserService(get_memory_db())
+
+
+def get_order_service() -> OrderService:
+    """
+    Dependency to get the OrderService instance.
+    Uses the singleton database instance internally.
+    """
+    return OrderService(get_memory_db())
+
+
+# Type-annotated dependencies for FastAPI
+UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+OrderServiceDep = Annotated[OrderService, Depends(get_order_service)]

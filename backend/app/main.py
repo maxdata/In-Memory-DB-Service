@@ -26,13 +26,15 @@ Sample data is loaded during startup because:
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Dict, Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .db.base import InMemoryDB, DatabaseError
-from .db.initial_data import get_sample_data
+from .models.user import User
+from .models.order import Order
 from .api.v1 import tables
 
 # Get singleton database instance
@@ -41,6 +43,40 @@ from .api.v1 import tables
 # 2. If the instance already exists (e.g., created by another module), it returns that instance
 # This ensures we're always working with the same database instance throughout the application
 db = InMemoryDB()
+
+
+def get_sample_data() -> Dict[str, list[User | Order]]:
+    """Get sample data for testing."""
+    from uuid import uuid4
+    from datetime import datetime
+
+    user_id = uuid4()
+    now = datetime.utcnow()
+
+    user = User(
+        id=user_id,
+        email="test@example.com",
+        full_name="Test User",
+        hashed_password="hashed_password123",
+        is_active=True,
+        created_at=now,
+        updated_at=now
+    )
+
+    order = Order(
+        id=uuid4(),
+        user_id=user_id,
+        amount=99.99,
+        description="Test Order",
+        status="pending",
+        created_at=now,
+        updated_at=now
+    )
+
+    return {
+        "users": [user],
+        "orders": [order]
+    }
 
 
 @asynccontextmanager
@@ -74,9 +110,9 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     # Load sample data
     sample_data = get_sample_data()
     for user in sample_data["users"]:
-        await db.create("users", user.id, user.model_dump())
+        await db.create("users", str(user.id), user.model_dump())
     for order in sample_data["orders"]:
-        await db.create("orders", order.id, order.model_dump())
+        await db.create("orders", str(order.id), order.model_dump())
 
     yield
     # Clean up database
