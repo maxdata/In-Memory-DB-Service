@@ -1,0 +1,63 @@
+{
+  "users": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "john@example.com",
+      "full_name": "John Doe",
+      "age": 30,
+      "password": "testpassword123"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "email": "alice@example.com",
+      "full_name": "Alice Smith",
+      "age": 28,
+      "password": "testpassword123"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "email": "bob@example.com",
+      "full_name": "Bob Johnson",
+      "age": 35,
+      "password": "testpassword123"
+    }
+  ],
+  "orders": [
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440000",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "amount": 999.99,
+      "description": "Laptop",
+      "status": "completed",
+      "created_at": "2024-03-22T10:00:00Z",
+      "updated_at": "2024-03-22T10:00:00Z"
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "amount": 49.98,
+      "description": "Mouse",
+      "status": "pending",
+      "created_at": "2024-03-22T11:00:00Z",
+      "updated_at": "2024-03-22T11:00:00Z"
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440002",
+      "user_id": "550e8400-e29b-41d4-a716-446655440001",
+      "amount": 299.99,
+      "description": "Monitor",
+      "status": "processing",
+      "created_at": "2024-03-22T12:00:00Z",
+      "updated_at": "2024-03-22T12:00:00Z"
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440003",
+      "user_id": "550e8400-e29b-41d4-a716-446655440002",
+      "amount": 79.99,
+      "description": "Keyboard",
+      "status": "completed",
+      "created_at": "2024-03-22T13:00:00Z",
+      "updated_at": "2024-03-22T13:00:00Z"
+    }
+  ]
+}
