@@ -41,21 +41,21 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8, description="User's password")
 
 
-class User(UserBase):
-    """Core user model with essential fields."""
+class User(BaseModel):
+    """Database model for users."""
+    id: UUID4 = Field(default_factory=uuid4, description="Unique identifier for the user")
+    email: EmailStr = Field(..., description="User's email address")
+    full_name: str | None = Field(None, description="User's full name")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    id: UUID4 = Field(
-        default_factory=uuid4, description="Unique identifier for the user"
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={
+            UUID4: str,
+            datetime: lambda v: v.isoformat(),
+        },
     )
-    created_at: datetime = Field(
-        default_factory=datetime.utcnow, description="When the user was created"
-    )
-    updated_at: datetime = Field(
-        default_factory=datetime.utcnow, description="When the user was last updated"
-    )
-
-    class Config:
-        from_attributes = True
 
 
 class UserPublic(UserBase):

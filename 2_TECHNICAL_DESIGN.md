@@ -86,7 +86,12 @@ The test suite is organized to cover different testing scenarios:
 ### 2.2 Data Storage Implementation
 
 #### 2.2.1 In-Memory Database Class
-See implementation in [db/base.py](./db/base.py)
+The core database functionality is implemented in [db/base.py](./db/base.py) which provides:
+- Singleton pattern implementation
+- Table-level locking for concurrent operations
+- Async/await support
+- Generic CRUD operations
+- Custom error handling
 
 #### 2.2.2 Singleton Pattern Implementation
 The in-memory database uses the Singleton pattern to ensure only one database instance exists throughout the application lifecycle. This is crucial for maintaining consistent state across all API endpoints.
@@ -130,8 +135,7 @@ The Singleton pattern ensures:
   - Provides generic CRUD operations
   - No knowledge of models or business logic
 - **Key Files**:
-  - `base.py`: Core InMemoryDB implementation with generic operations
-  - `db.py`: Database connection management
+  - `base.py`: Core InMemoryDB implementation with generic operations and table-level locking
   - `initial_data.py`: Seed data and initialization
 - **Dependencies**: Only standard library (collections, typing, asyncio)
 - **Evaluation**: Aligns with clean architecture principles by isolating database operations from business logic
