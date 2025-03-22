@@ -3,7 +3,7 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./backend
+      context: ../backend
       target: ${DOCKER_TARGET:-production}  # Use production by default, override with DOCKER_TARGET=development
     image: in-memory-db-service:${TAG:-latest}
     restart: always

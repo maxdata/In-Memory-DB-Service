@@ -1,13 +1,31 @@
 # Technical Design Document: In-Memory Database Service
 
 ## Table of Contents
-- [System Architecture](#1-system-architecture)
-- [Detailed Design](#2-detailed-design)
-- [Technical Implementation Details](#3-technical-implementation-details)
-- [Testing Strategy](#4-testing-strategy)
-- [Deployment Architecture](#5-deployment-architecture)
-- [Security Considerations](#6-security-considerations)
-- [Future Optimizations](#7-future-optimizations)
+- [1. System Architecture](#1-system-architecture)
+  - [1.1 High-Level Architecture](#11-high-level-architecture)
+  - [1.2 Component Overview](#12-component-overview)
+- [2. Detailed Design](#2-detailed-design)
+  - [2.1 Project Structure](#21-project-structure)
+    - [2.1.1 Application Directory](#211-application-directory-app)
+    - [2.1.2 Test Directory](#212-test-directory-tests)
+  - [2.2 Data Storage Implementation](#22-data-storage-implementation)
+    - [2.2.1 In-Memory Database Class](#221-in-memory-database-class)
+    - [2.2.2 Singleton Pattern Implementation](#222-singleton-pattern-implementation)
+  - [2.4 Model Hierarchy and Layer Analysis](#24-model-hierarchy-and-layer-analysis)
+    - [2.4.1 Layer Dependencies and Project Structure](#241-layer-dependencies-and-project-structure)
+    - [2.4.2 Layer-by-Layer Analysis](#242-layer-by-layer-analysis)
+    - [2.4.3 Design Principles](#243-design-principles)
+    - [2.4.4 Interaction Flow Examples](#244-interaction-flow-examples)
+- [3. Technical Implementation Details](#3-technical-implementation-details)
+  - [3.1 Concurrency Handling](#31-concurrency-handling)
+  - [3.2 Performance Optimizations](#32-performance-optimizations)
+- [4. Testing Strategy](#4-testing-strategy)
+  - [4.1 Test Organization](#41-test-organization)
+  - [4.2 Test Implementation Details](#42-test-implementation-details)
+    - [4.2.1 Normal Path Testing](#421-normal-path-testing)
+- [5. Deployment](#5-deployment)
+- [6. Security Considerations](#6-security-considerations)
+- [7. Future Optimizations](#7-future-optimizations)
 
 ## 1. System Architecture
 
@@ -65,66 +83,6 @@ The test suite is organized to cover different testing scenarios:
 └── test_reports/               # Generated test reports
 ```
 
-#### 2.1.3 Component Responsibilities
-
-1. **api/**
-   - Contains all API routes organized by version
-   - Implements endpoint handlers
-   - Manages request/response lifecycle
-   - Handles dependency injection
-
-2. **core/**
-   - Application configuration management
-   - Environment variables handling
-   - Security settings and utilities
-   - Global constants and settings
-
-3. **db/**
-   - Database connection management
-   - Session handling
-   - Base database classes
-   - Database utilities
-
-4. **models/** and **schemas/**
-   - `models/`: Database models and data structures
-   - `schemas/`: Pydantic models for request/response validation
-   - Data validation and serialization
-   - Type definitions and constraints
-
-5. **services/**
-   - Business logic implementation
-   - Service layer abstraction
-   - Complex operations and workflows
-   - Data processing and transformation
-
-6. **tests/**
-   - `test_api_normal.py`: Basic functionality and happy path scenarios
-   - `test_api_edge_cases.py`: Error handling and boundary conditions
-   - `test_api_performance.py`: Load testing and performance benchmarks
-   - `generate_test_report.py`: Automated test report generation
-   - `test_reports/`: Storage for test execution results
-   - `sample_data.json`: Test data for consistent test execution
-
-#### 2.1.4 Design Principles
-
-1. **Separation of Concerns**
-   - Each directory has a specific responsibility
-   - Clear boundaries between components
-   - Minimal coupling between modules
-   - Maximum cohesion within modules
-
-2. **Dependency Management**
-   - Centralized dependency injection
-   - Clear dependency flow
-   - Easy to test and mock
-   - Configurable dependencies
-
-3. **Scalability**
-   - Easy to add new features
-   - Simple to maintain
-   - Clear upgrade paths
-   - Version control friendly
-
 ### 2.2 Data Storage Implementation
 
 #### 2.2.1 In-Memory Database Class
@@ -150,34 +108,120 @@ The Singleton pattern ensures:
 - Efficient memory usage by preventing multiple instances
 - Simplified dependency injection in FastAPI
 
-### 2.3 API Implementation
+### 2.4 Model Hierarchy and Layer Analysis
 
-#### 2.3.1 Design Rationale
-The API implementation follows REST best practices by using resource-specific endpoints instead of generic table operations. Here's why:
+### 2.4.1 Layer Dependencies and Project Structure
+```
+@app
+├── db/      (lowest)  → Pure data storage, no app dependencies
+├── models/           → Core data structures
+├── schemas/         → API data validation
+├── services/        → Business logic
+└── api/    (highest) → API endpoints and routing
+```
 
-1. **Security**:
-   - Resource-specific endpoints prevent arbitrary table access
-   - Enables fine-grained access control per resource
-   - Eliminates SQL injection-like vulnerabilities from dynamic table names
-   - Allows validation specific to each resource type
+### 2.4.2 Layer-by-Layer Analysis
 
-2. **RESTful Design**:
-   - Resources are nouns (users, orders) rather than operations (add_record, join)
-   - Relationships expressed through nested routes (e.g., /users/{id}/orders)
-   - HTTP methods indicate the operation (GET, POST, etc.)
-   - Clear hierarchy and resource ownership
+#### @db (Lowest Level)
+- **Description**: The database layer only handles raw data operations
+- **Key Characteristics**:
+  - Never imports from other app modules
+  - Only deals with raw data (dictionaries)
+  - Provides generic CRUD operations
+  - No knowledge of models or business logic
+- **Key Files**:
+  - `base.py`: Core InMemoryDB implementation with generic operations
+  - `db.py`: Database connection management
+  - `initial_data.py`: Seed data and initialization
+- **Dependencies**: Only standard library (collections, typing, asyncio)
+- **Evaluation**: Aligns with clean architecture principles by isolating database operations from business logic
 
-3. **Type Safety**:
-   - Each endpoint has specific Pydantic models for validation
-   - Compile-time type checking for request/response models
-   - Better IDE support and code completion
-   - Reduced runtime errors from invalid data
+#### @models
+- **Description**: Defines core data structures and validation
+- **Key Characteristics**:
+  - Defines fundamental data structures
+  - No dependencies on @db or @services
+  - Used by both @schemas and @services
+- **Key Files**:
+  - `user.py`: User model definition and validation
+  - `order.py`: Order model definition and validation
+- **Dependencies**: External libraries only (e.g., Pydantic)
+- **Evaluation**: Consistent with FastAPI's use of Pydantic models for data validation
 
-4. **Maintainability**:
-   - Clear separation of concerns per resource
-   - Easier to document and understand
-   - Simpler testing with specific test cases
-   - Better version control and API evolution
+#### @schemas
+- **Description**: API-specific data validation layer
+- **Key Characteristics**:
+  - Extends @models for API validation
+  - Used for request/response validation
+  - Depends on @models
+- **Key Files**:
+  - `base.py`: Base schemas and common validators
+  - `user.py`: User request/response schemas
+  - `order.py`: Order request/response schemas
+- **Dependencies**: @models
+- **Evaluation**: Follows FastAPI conventions for request/response validation
+
+#### @services (High Level)
+- **Description**: Business logic and coordination layer
+- **Key Characteristics**:
+  - Coordinates between models and database
+  - Implements business logic
+  - Depends on both @models and @db
+  - Never imports from @schemas
+- **Key Files**:
+  - `user_service.py`: User-related business logic
+  - `order_service.py`: Order-related business logic
+- **Dependencies**: @models, @db
+- **Evaluation**: Strong adherence to clean architecture principles
+
+#### @api (Highest Level)
+- **Description**: API endpoints and request handling
+- **Key Characteristics**:
+  - Routes HTTP requests to appropriate services
+  - Handles request/response formatting
+  - Manages API versioning
+  - Implements dependency injection
+- **Key Files**:
+  - `v1/`: API version 1 endpoints
+  - `deps.py`: Dependency injection utilities
+- **Dependencies**: @services, @schemas
+- **Evaluation**: Clean separation of routing from business logic
+
+### 2.4.3 Design Principles
+
+1. **Separation of Concerns**:
+   - Each directory has a specific responsibility
+   - Clear boundaries between components
+   - Minimal coupling between modules
+   - Maximum cohesion within modules
+
+2. **Dependency Management**:
+   - Centralized dependency injection
+   - Clear dependency flow
+   - Easy to test and mock
+   - Configurable dependencies
+
+3. **Scalability**:
+   - Easy to add new features
+   - Simple to maintain
+   - Clear upgrade paths
+   - Version control friendly
+
+### 2.4.4 Interaction Flow Examples
+
+1. **Creating a User**:
+```
+API Route → UserService.create_user(user_data: User) →
+    → user_data.model_dump() [from @models] →
+        → InMemoryDB.create("users", user_id, user_dict) [from @db]
+```
+
+2. **Getting User Orders**:
+```
+API Route → OrderService.get_user_orders(user_id: UUID) →
+    → InMemoryDB.list("orders") [from @db] →
+        → Filter orders by user_id [in service layer]
+```
 
 ## 3. Technical Implementation Details
 
@@ -259,51 +303,17 @@ make test-edge
 make test-performance
 ```
 
-## 5. Deployment Architecture
+## 5. Deployment
 
-### 5.1 Docker Configuration
-The service uses a multi-stage Docker build process optimized for both development and production environments.
+For detailed deployment information, including Docker configuration, deployment scenarios, resource management, and maintenance procedures, please refer to the [Deployment Guide](./deploy/DEPLOYMENT.md).
 
-#### 5.1.1 Multi-Stage Build Architecture
-1. **Builder Stage**
-   - Python 3.11-slim base image
-   - UV package manager (v0.5.11)
-   - Build dependencies installation
-   - Dependency management with UV sync
-   - Bytecode compilation enabled
-
-2. **Development Stage**
-   - Inherits from builder
-   - Development environment settings
-   - Hot-reload with Uvicorn
-   - Debug mode enabled
-   - Source code mounting
-
-3. **Production Stage**
-   - Minimal Python 3.11-slim image
-   - Non-root user execution
-   - Resource limits:
-     - Memory: 512MB
-     - CPU: 1.0 cores
-   - 4 Gunicorn workers
-   - Health check implementation
-
-#### 5.1.2 Container Orchestration
-Docker Compose configuration includes:
-1. Build configuration with target selection
-2. Resource management (CPU/memory limits)
-3. Environment variable configuration
-4. Health monitoring
-5. Log rotation
-6. Network isolation
-
-### 5.2 Health Check Implementation
-- Basic health check endpoint at `/api/v1/utils/health-check`
-- Docker health check configuration:
-  - 30-second interval
-  - 5-second timeout
-  - 3 retries
-  - 5-second start period
+The deployment documentation covers:
+- Multi-stage Docker build architecture
+- Container orchestration with Docker Compose
+- Development and production deployment scenarios
+- Resource management and monitoring
+- Health checks and logging
+- Maintenance procedures
 
 ## 6. Security Considerations
 

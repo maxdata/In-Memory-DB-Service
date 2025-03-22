@@ -1,7 +1,7 @@
 """Data models for the in-memory database service."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from uuid import uuid4
 
 from pydantic import UUID4, BaseModel, EmailStr, Field, ConfigDict
@@ -42,7 +42,7 @@ class UserCreate(UserBase):
 
 
 class User(UserBase):
-    """Model for a user in the database."""
+    """Core user model with essential fields."""
 
     id: UUID4 = Field(
         default_factory=uuid4, description="Unique identifier for the user"
@@ -53,17 +53,9 @@ class User(UserBase):
     updated_at: datetime = Field(
         default_factory=datetime.utcnow, description="When the user was last updated"
     )
-    orders: list[Order] = Field(
-        default_factory=list, description="Orders associated with this user"
-    )
 
-    model_config = ConfigDict(
-        from_attributes=True,
-        json_encoders={
-            UUID4: str,
-            datetime: lambda v: v.isoformat(),
-        },
-    )
+    class Config:
+        from_attributes = True
 
 
 class UserPublic(UserBase):

@@ -1,14 +1,46 @@
 # Product Requirements Document: In-Memory Database Service
 
 ## Table of Contents
-- [Product Overview](#1-product-overview)
-- [Functional Requirements](#2-functional-requirements)
-- [Technical Requirements](#3-technical-requirements)
-- [Quality Assurance](#4-quality-assurance)
-- [Deployment Requirements](#5-deployment-requirements)
-- [Success Criteria](#6-success-criteria)
-- [Future Considerations](#7-future-considerations)
-- [Timeline and Milestones](#8-timeline-and-milestones)
+- [1. Product Overview](#1-product-overview)
+  - [1.1 Product Purpose](#11-product-purpose)
+  - [1.2 Target Users](#12-target-users)
+- [2. Functional Requirements](#2-functional-requirements)
+  - [2.1 Core Features](#21-core-features)
+    - [2.1.1 Data Storage](#211-data-storage)
+    - [2.1.2 API Endpoints](#212-api-endpoints)
+    - [2.1.3 API Design Requirements](#213-api-design-requirements)
+  - [2.2 Data Models](#22-data-models)
+    - [2.2.1 Base Requirements](#221-base-requirements)
+  - [2.3 Security Requirements](#23-security-requirements)
+  - [2.4 Performance Requirements](#24-performance-requirements)
+- [3. Technical Requirements](#3-technical-requirements)
+  - [3.1 Technology Stack](#31-technology-stack)
+  - [3.2 Performance Requirements](#32-performance-requirements)
+  - [3.3 Security Requirements](#33-security-requirements)
+  - [3.4 Monitoring Requirements](#34-monitoring-requirements)
+- [4. Quality Assurance](#4-quality-assurance)
+  - [4.1 Testing Requirements](#41-testing-requirements)
+    - [4.1.1 Normal Path Tests](#411-normal-path-tests)
+    - [4.1.2 Edge Case Tests](#412-edge-case-tests)
+    - [4.1.3 Performance Tests](#413-performance-tests)
+  - [4.2 Test Coverage Requirements](#42-test-coverage-requirements)
+  - [4.3 Performance Requirements](#43-performance-requirements)
+  - [4.4 Test Automation](#44-test-automation)
+  - [4.5 Test Environment](#45-test-environment)
+  - [4.6 Security Tests](#46-security-tests)
+  - [4.7 Test Coverage](#47-test-coverage)
+  - [4.8 Test Environment](#48-test-environment)
+  - [4.9 Quality Gates](#49-quality-gates)
+- [5. Deployment Requirements](#5-deployment-requirements)
+- [6. Success Criteria](#6-success-criteria)
+  - [6.1 Technical Success Metrics](#61-technical-success-metrics)
+  - [6.2 Functional Success Metrics](#62-functional-success-metrics)
+- [7. Future Considerations](#7-future-considerations)
+  - [7.1 Potential Enhancements](#71-potential-enhancements)
+  - [7.2 Known Limitations](#72-known-limitations)
+- [8. Timeline and Milestones](#8-timeline-and-milestones)
+  - [8.1 Development Phases](#81-development-phases)
+  - [8.2 Deliverables](#82-deliverables)
 
 ## 1. Product Overview
 
@@ -291,67 +323,18 @@ The In-Memory Database Service is a high-performance, lightweight database solut
 
 ## 5. Deployment Requirements
 
-### 5.1 Docker Configuration
-- **Container Architecture:**
-  - Multi-stage build process:
-    - Builder stage for dependency management and compilation
-    - Development stage for local development
-    - Production stage for deployment
-  - UV package manager integration (v0.5.11)
-  - Python 3.11 slim base image
+For comprehensive deployment requirements and implementation details, please refer to the [Deployment Guide](./deploy/DEPLOYMENT.md).
 
-- **Development Environment:**
-  - Hot-reload capability with Uvicorn
-  - Debug mode enabled
-  - Full source code access
-  - Interactive development support
-  - Override configurations via environment variables
-
-- **Production Environment:**
-  - Security hardening:
-    - Non-root user execution
-    - Minimal system packages
-    - Proper file ownership
-  - Resource limits:
-    - Memory: 512MB limit, 256MB reservation
-    - CPU: 1.0 core limit, 0.25 core reservation
-  - Health monitoring:
-    - 30-second check interval
-    - 5-second timeout
-    - 3 retries
-    - 5-second start period
-  - Log management:
-    - JSON file logging
-    - 10MB file size limit
-    - 3 file rotation
-
-- **Container Orchestration:**
-  - Docker Compose configuration
-  - Environment-specific settings
-  - Resource management
-  - Health checks
-  - Automatic restarts
-  - Network isolation
-
-- **Build Requirements:**
-  - UV for dependency management
-  - Build-essential tools
-  - Bytecode compilation
-  - Layer caching optimization
-  - Minimal production image
-
-- **Runtime Requirements:**
-  - Gunicorn with 4 worker processes
-  - Uvicorn worker class
-  - Environment variable configuration
-  - Resource limit enforcement
-  - Health check endpoints
-
-### 5.2 Documentation Requirements
-- API documentation (Swagger/OpenAPI)
-- Setup instructions
-- Sample API calls
+The deployment guide covers:
+- Docker configuration and container architecture
+- Development and production environments
+- Resource management and limits
+- Health monitoring and logging
+- Documentation requirements
+- Maintenance procedures
 - Troubleshooting guide
+
+These deployment requirements are maintained in the deployment guide to ensure consistency and ease of maintenance.
 
 ## 6. Success Criteria
 
