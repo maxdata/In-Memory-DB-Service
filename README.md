@@ -198,10 +198,6 @@ make test           # Run all tests
 make test-report    # Generate comprehensive test report
 ```
 
-For detailed test implementation and requirements, see:
-- [Technical Design Document](./2_TECHNICAL_DESIGN.md#4-testing-strategy)
-- [Product Requirements](./1_PRODUCT_REQUIREMENTS.md#41-testing-requirements)
-
 ## 7. Deployment
 
 For detailed deployment instructions, configurations, and commands, please refer to our comprehensive [Deployment Guide](./deploy/DEPLOYMENT.md). The guide covers:
