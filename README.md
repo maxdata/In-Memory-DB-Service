@@ -243,6 +243,25 @@ curl -X POST http://localhost:8000/api/v1/users \
 curl -X GET http://localhost:8000/api/v1/users/550e8400-e29b-41d4-a716-446655440000
 ```
 
+3. List all users:
+```bash
+curl -X GET http://localhost:8000/api/v1/users
+```
+
+4. Update a user:
+```bash
+curl -X PATCH http://localhost:8000/api/v1/users/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "full_name": "John Smith"
+  }'
+```
+
+5. Delete a user:
+```bash
+curl -X DELETE http://localhost:8000/api/v1/users/550e8400-e29b-41d4-a716-446655440000
+```
+
 ### 8.3 Order Operations
 
 1. Create a new order:
@@ -262,6 +281,25 @@ curl -X POST http://localhost:8000/api/v1/orders \
 curl -X GET http://localhost:8000/api/v1/orders/550e8400-e29b-41d4-a716-446655441111
 ```
 
+3. List all orders:
+```bash
+curl -X GET http://localhost:8000/api/v1/orders
+```
+
+4. Update an order:
+```bash
+curl -X PATCH http://localhost:8000/api/v1/orders/550e8400-e29b-41d4-a716-446655441111 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "completed"
+  }'
+```
+
+5. Delete an order:
+```bash
+curl -X DELETE http://localhost:8000/api/v1/orders/550e8400-e29b-41d4-a716-446655441111
+```
+
 ### 8.4 Relationship Operations
 
 1. Get all orders for a user:
@@ -276,10 +314,34 @@ curl -X GET http://localhost:8000/api/v1/orders/550e8400-e29b-41d4-a716-44665544
 
 ### 8.5 Table Operations
 
-1. Dump table contents:
+1. Dump table contents (formatted):
 ```bash
 curl -X GET http://localhost:8000/api/v1/tables/users/dump  # For users table
 curl -X GET http://localhost:8000/api/v1/tables/orders/dump # For orders table
+```
+
+2. Dump table contents (raw):
+```bash
+curl -X GET http://localhost:8000/api/v1/db/dump/users  # For users table
+curl -X GET http://localhost:8000/api/v1/db/dump/orders # For orders table
+```
+
+3. Clear table contents:
+```bash
+curl -X DELETE http://localhost:8000/api/v1/tables/users  # Clear users table
+curl -X DELETE http://localhost:8000/api/v1/tables/orders # Clear orders table
+```
+
+### 8.6 Health Check Operations
+
+1. Health check:
+```bash
+curl -X GET http://localhost:8000/api/v1/health
+```
+
+2. Readiness check:
+```bash
+curl -X GET http://localhost:8000/api/v1/ready
 ```
 
 Note: Replace the UUIDs in the examples with actual UUIDs from your system. All endpoints return appropriate HTTP status codes:
@@ -288,3 +350,4 @@ Note: Replace the UUIDs in the examples with actual UUIDs from your system. All 
 - 400: Bad request
 - 404: Resource not found
 - 422: Validation error
+- 500: Internal server error
